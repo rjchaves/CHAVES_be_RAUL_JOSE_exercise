@@ -14,9 +14,16 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
 import static com.ecore.roles.utils.MockUtils.mockGetTeamById;
+import static com.ecore.roles.utils.MockUtils.mockGetUserById;
 import static com.ecore.roles.utils.RestAssuredHelper.createMembership;
 import static com.ecore.roles.utils.RestAssuredHelper.getMemberships;
-import static com.ecore.roles.utils.TestData.*;
+import static com.ecore.roles.utils.TestData.DEFAULT_MEMBERSHIP;
+import static com.ecore.roles.utils.TestData.DEVELOPER_ROLE_UUID;
+import static com.ecore.roles.utils.TestData.GIANNI_USER;
+import static com.ecore.roles.utils.TestData.INVALID_MEMBERSHIP;
+import static com.ecore.roles.utils.TestData.ORDINARY_CORAL_LYNX_TEAM;
+import static com.ecore.roles.utils.TestData.RAUL_USER;
+import static com.ecore.roles.utils.TestData.UUID_1;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -123,13 +130,24 @@ public class MembershipsApiTests {
     }
 
     @Test
+    void shouldFailToCreateRoleMembershipWhenUserDoesNotExist() {
+        Membership expectedMembership = DEFAULT_MEMBERSHIP();
+        mockGetTeamById(mockServer, expectedMembership.getTeamId(), ORDINARY_CORAL_LYNX_TEAM());
+        mockGetUserById(mockServer, expectedMembership.getUserId(), null);
+
+        createMembership(expectedMembership)
+                .validate(404, format("User %s not found", expectedMembership.getUserId()));
+    }
+
+    @Test
     void shouldFailToAssignRoleWhenMembershipIsInvalid() {
         Membership expectedMembership = INVALID_MEMBERSHIP();
         mockGetTeamById(mockServer, expectedMembership.getTeamId(), ORDINARY_CORAL_LYNX_TEAM());
+        mockGetUserById(mockServer, expectedMembership.getUserId(), RAUL_USER());
 
         createMembership(expectedMembership)
                 .validate(400,
-                        "Invalid 'Membership' object. The provided user doesn't belong to the provided team.");
+                        "User is not on provided Team");
     }
 
     @Test
@@ -164,6 +182,7 @@ public class MembershipsApiTests {
     private MembershipDto createDefaultMembership() {
         Membership expectedMembership = DEFAULT_MEMBERSHIP();
         mockGetTeamById(mockServer, expectedMembership.getTeamId(), ORDINARY_CORAL_LYNX_TEAM());
+        mockGetUserById(mockServer, expectedMembership.getUserId(), GIANNI_USER());
 
         return createMembership(expectedMembership)
                 .statusCode(201)

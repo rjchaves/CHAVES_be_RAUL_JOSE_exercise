@@ -5,6 +5,7 @@ import com.ecore.roles.model.Role;
 import com.ecore.roles.repository.RoleRepository;
 import com.ecore.roles.utils.RestAssuredHelper;
 import com.ecore.roles.web.dto.RoleDto;
+import io.restassured.common.mapper.TypeRef;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Optional;
 
 import static com.ecore.roles.utils.MockUtils.mockGetTeamById;
+import static com.ecore.roles.utils.MockUtils.mockGetUserById;
 import static com.ecore.roles.utils.RestAssuredHelper.createMembership;
 import static com.ecore.roles.utils.RestAssuredHelper.createRole;
 import static com.ecore.roles.utils.RestAssuredHelper.getRole;
@@ -24,6 +26,7 @@ import static com.ecore.roles.utils.RestAssuredHelper.sendRequest;
 import static com.ecore.roles.utils.TestData.DEFAULT_MEMBERSHIP;
 import static com.ecore.roles.utils.TestData.DEVELOPER_ROLE;
 import static com.ecore.roles.utils.TestData.DEVOPS_ROLE;
+import static com.ecore.roles.utils.TestData.GIANNI_USER;
 import static com.ecore.roles.utils.TestData.GIANNI_USER_UUID;
 import static com.ecore.roles.utils.TestData.ORDINARY_CORAL_LYNX_TEAM;
 import static com.ecore.roles.utils.TestData.ORDINARY_CORAL_LYNX_TEAM_UUID;
@@ -106,7 +109,7 @@ public class RolesApiTest {
     @Test
     void shouldGetAllRoles() {
         RoleDto[] roles = getRoles()
-                .extract().as(RoleDto[].class);
+                .extract().as(new TypeRef<>() {});
 
         assertThat(roles.length).isGreaterThanOrEqualTo(3);
         assertThat(roles).contains(RoleDto.fromModel(DEVELOPER_ROLE()));
@@ -133,6 +136,8 @@ public class RolesApiTest {
     void shouldGetRoleByUserIdAndTeamId() {
         Membership expectedMembership = DEFAULT_MEMBERSHIP();
         mockGetTeamById(mockServer, ORDINARY_CORAL_LYNX_TEAM_UUID, ORDINARY_CORAL_LYNX_TEAM());
+        mockGetUserById(mockServer, expectedMembership.getUserId(), GIANNI_USER());
+
         createMembership(expectedMembership)
                 .statusCode(201);
 

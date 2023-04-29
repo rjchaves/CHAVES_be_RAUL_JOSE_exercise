@@ -12,6 +12,8 @@ import javax.persistence.Id;
 import java.util.List;
 import java.util.UUID;
 
+import static java.util.Optional.ofNullable;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -32,4 +34,10 @@ public class Team {
 
     @JsonProperty
     private List<UUID> teamMemberIds;
+
+    public boolean containsUser(UUID userId) {
+        return ofNullable(getTeamMemberIds())
+                .map((l) -> l.contains(userId))
+                .orElse(false);
+    }
 }
