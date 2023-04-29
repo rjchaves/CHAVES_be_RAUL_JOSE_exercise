@@ -1,19 +1,29 @@
 package com.ecore.roles.web;
 
 import com.ecore.roles.web.dto.RoleDto;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface RolesApi {
 
-    ResponseEntity<RoleDto> createRole(
+    RoleDto createRole(
             RoleDto role);
 
-    ResponseEntity<List<RoleDto>> getRoles();
+    List<RoleDto> getRoles();
 
-    ResponseEntity<RoleDto> getRole(
+    RoleDto getRole(
             UUID roleId);
 
+    @GetMapping(
+            path = "/search",
+            produces = {"application/json"})
+    @ResponseStatus(HttpStatus.OK)
+    RoleDto getRole(
+            @RequestParam UUID userId,
+            @RequestParam UUID teamId);
 }

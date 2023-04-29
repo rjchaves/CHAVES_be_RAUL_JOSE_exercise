@@ -3,6 +3,7 @@ package com.ecore.roles.web.rest;
 import com.ecore.roles.exception.ErrorResponse;
 import com.ecore.roles.exception.ResourceExistsException;
 import com.ecore.roles.exception.ResourceNotFoundException;
+import com.ecore.roles.exception.ValidationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -23,6 +24,11 @@ public class DefaultExceptionHandler {
     @ExceptionHandler
     public ResponseEntity<ErrorResponse> handle(IllegalStateException exception) {
         return createResponse(500, exception.getMessage());
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponse> handle(ValidationException exception) {
+        return createResponse(400, exception.getMessage());
     }
 
     private ResponseEntity<ErrorResponse> createResponse(int status, String exception) {

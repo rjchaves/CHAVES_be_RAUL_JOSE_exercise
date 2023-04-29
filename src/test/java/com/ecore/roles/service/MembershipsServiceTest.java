@@ -2,6 +2,7 @@ package com.ecore.roles.service;
 
 import com.ecore.roles.exception.InvalidArgumentException;
 import com.ecore.roles.exception.ResourceExistsException;
+import com.ecore.roles.exception.ValidationException;
 import com.ecore.roles.model.Membership;
 import com.ecore.roles.repository.MembershipRepository;
 import com.ecore.roles.repository.RoleRepository;
@@ -16,13 +17,16 @@ import java.util.Optional;
 
 import static com.ecore.roles.utils.TestData.DEFAULT_MEMBERSHIP;
 import static com.ecore.roles.utils.TestData.DEVELOPER_ROLE;
+import static com.ecore.roles.utils.TestData.GIANNI_USER;
+import static com.ecore.roles.utils.TestData.ORDINARY_CORAL_LYNX_TEAM;
+import static com.ecore.roles.utils.TestData.RAUL_USER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class MembershipsServiceTest {
@@ -49,6 +53,12 @@ class MembershipsServiceTest {
         when(membershipRepository
                 .save(expectedMembership))
                         .thenReturn(expectedMembership);
+
+        when(teamsService.getTeam(expectedMembership.getTeamId()))
+                .thenReturn(Optional.of(ORDINARY_CORAL_LYNX_TEAM()));
+
+        when(usersService.getUser(expectedMembership.getUserId()))
+                .thenReturn(GIANNI_USER());
 
         Membership actualMembership = membershipsService.assignRoleToMembership(expectedMembership);
 
@@ -77,6 +87,27 @@ class MembershipsServiceTest {
         verify(roleRepository, times(0)).getById(any());
         verify(usersService, times(0)).getUser(any());
         verify(teamsService, times(0)).getTeam(any());
+    }
+
+
+    @Test
+    public void shouldFailToCreateMembershipWhenUserIsNotInTheTeam() {
+        Membership membership = DEFAULT_MEMBERSHIP();
+        when(roleRepository.findById(membership.getRole().getId()))
+                .thenReturn(Optional.ofNullable(DEVELOPER_ROLE()));
+        when(membershipRepository.findByUserIdAndTeamId(membership.getUserId(),
+                membership.getTeamId()))
+                .thenReturn(Optional.empty());
+
+        when(teamsService.getTeam(membership.getTeamId()))
+                .thenReturn(Optional.of(ORDINARY_CORAL_LYNX_TEAM()));
+
+        when(usersService.getUser(membership.getUserId()))
+                .thenReturn(RAUL_USER());
+
+        ValidationException validationException = assertThrows(ValidationException.class, () -> membershipsService.assignRoleToMembership(membership));
+        assertEquals(validationException.getMessage(), "User is not on provided Team");
+        verify(roleRepository).findById(membership.getRole().getId());
     }
 
     @Test

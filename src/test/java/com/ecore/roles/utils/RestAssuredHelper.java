@@ -30,6 +30,14 @@ public class RestAssuredHelper {
         return new EcoreValidatableResponse(validatableResponse);
     }
 
+    public static EcoreValidatableResponse getTeam(UUID teamId) {
+        return sendRequest(given()
+                .pathParam("teamId", teamId)
+                .when()
+                .get("/v1/teams/{teamId}")
+                .then());
+    }
+
     public static EcoreValidatableResponse createRole(Role role) {
         return sendRequest(givenNullableBody(RoleDto.fromModel(role))
                 .contentType(JSON)
