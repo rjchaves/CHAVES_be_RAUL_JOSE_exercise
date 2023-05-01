@@ -5,7 +5,7 @@ import com.ecore.roles.service.RolesService;
 import com.ecore.roles.web.RolesApi;
 import com.ecore.roles.web.dto.RoleDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -26,19 +26,19 @@ public class RolesRestController implements RolesApi {
     @PostMapping(
             consumes = {"application/json"},
             produces = {"application/json"})
-    public ResponseEntity<RoleDto> createRole(
+    @ResponseStatus(HttpStatus.CREATED)
+    public RoleDto createRole(
             @Valid @RequestBody RoleDto role) {
-        return ResponseEntity
-                .status(200)
-                .body(fromModel(rolesService.CreateRole(role.toModel())));
+        return fromModel(rolesService.createRole(role.toModel()));
     }
 
     @Override
-    @PostMapping(
+    @GetMapping(
             produces = {"application/json"})
-    public ResponseEntity<List<RoleDto>> getRoles() {
+    @ResponseStatus(HttpStatus.OK)
+    public List<RoleDto> getRoles() {
 
-        List<Role> getRoles = rolesService.GetRoles();
+        List<Role> getRoles = rolesService.getRoles();
 
         List<RoleDto> roleDtoList = new ArrayList<>();
 
@@ -47,20 +47,27 @@ public class RolesRestController implements RolesApi {
             roleDtoList.add(roleDto);
         }
 
-        return ResponseEntity
-                .status(200)
-                .body(roleDtoList);
+        return roleDtoList;
     }
 
     @Override
-    @PostMapping(
+    @GetMapping(
             path = "/{roleId}",
             produces = {"application/json"})
-    public ResponseEntity<RoleDto> getRole(
+    @ResponseStatus(HttpStatus.OK)
+    public RoleDto getRole(
             @PathVariable UUID roleId) {
-        return ResponseEntity
-                .status(200)
-                .body(fromModel(rolesService.GetRole(roleId)));
+        return fromModel(rolesService.getRole(roleId));
     }
 
+    @Override
+    @GetMapping(
+            path = "/search",
+            produces = {"application/json"})
+    @ResponseStatus(HttpStatus.OK)
+    public RoleDto getRole(
+            @RequestParam("teamMemberId") UUID userId,
+            @RequestParam UUID teamId) {
+        return fromModel(rolesService.getRole(userId, teamId));
+    }
 }
